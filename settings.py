@@ -14,7 +14,7 @@ banner = "DEFCON Furs"
 debug = False
 
 # The animation to play at boot.
-bootanim = "scroll"
+bootanim = "fire"
 
 # Whether the maze animation should autosolve.
 mazesolver = True
@@ -28,7 +28,7 @@ blecooldown = 60
 # Default boop detection is done using the capacative touch
 # detection on the nose (0), but we can also move the detection
 # to use the capacative touch on the teeth (1).
-boopselect = 0
+boopselect = 1
 
 # Default color selection that animations should use unless there
 # is something more specific provided by the animation logic.
