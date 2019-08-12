@@ -8,7 +8,19 @@ import random
 # Colors, from top to bottom (fire goes from blue on bottom to yellow to red
 # to black).
 colors = [0, 0x1f0f0f, 0x3f0000, 0xff0000, 0xff7f00, 0xffff00, 0x1f007f,
-          0x0000ff]
+          0x0000ff, 0xffffff]
+
+# Bitmask values copied from emote.boop().
+boop_mask = [
+    0x0e48e,
+    0x12b52,
+    0x12b52,
+    0x0eb4e,
+    0x02492,
+    0x02012,
+    0x0200e
+]
+    
 
 class fire(object):
     """A simple fire animation, inspired by the classic demo fire effect."""
@@ -22,9 +34,11 @@ class fire(object):
         # That row isn't displayed on the LEDs.
         self.buffer = [[0] * dcfurs.ncols for y in range(dcfurs.nrows + 1)]
         self.interval = 25
+        self.boop_remaining = 0
 
     def draw(self):
         self.update()
+        self.update_boop()
 
         for y in range(dcfurs.nrows):
             for x in range(dcfurs.ncols):
@@ -46,6 +60,22 @@ class fire(object):
                     value -= 1
                 self.buffer[y][x] = min(len(colors) - 1, max(0, value))
 
+    def boop(self):
+        """Nose Boop start, reset our internal Boop timer."""
+        self.boop_remaining = 1000 / self.interval
+
+    def update_boop(self):
+        """Check if we need to add Boop to the flames."""
+        if self.boop_remaining:
+            self.add_boop()
+            self.boop_remaining -= 1
+
+    def add_boop(self):
+        """Add Boop to the fire, so it interacts with the flames."""
+        for row_mask, y in enumerate(boop_mask):
+            for x in range(dcfurs.ncols):
+                if (1 << x) & row_mask:
+                    self.buffer[y][x] = len(colors) - 1
 
 # Simple unit test to verify that everything should run without
 # crashing.  When run locally, there's no dcfurs module, so this
