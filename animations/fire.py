@@ -72,7 +72,7 @@ class fire(object):
 
     def add_boop(self):
         """Add Boop to the fire, so it interacts with the flames."""
-        for row_mask, y in enumerate(boop_mask):
+        for y, row_mask in enumerate(boop_mask):
             for x in range(dcfurs.ncols):
                 if (1 << x) & row_mask:
                     self.buffer[y][x] = len(colors) - 1
@@ -105,5 +105,9 @@ if __name__ == '__main__':
         def test_interface(self):
             self.assertTrue(hasattr(self.pattern, 'interval'))
             self.assertTrue(hasattr(self.pattern, 'draw'))
+            self.pattern.draw()
+
+        def test_boop(self):
+            self.pattern.boop()
             self.pattern.draw()
     unittest.main()
