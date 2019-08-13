@@ -1,12 +1,9 @@
 """Fire animation, by Uck!"""
 
-if __name__ != '__main__':
-    # See unit tests below.  dcfurs doesn't exist when running locally.
-    import dcfurs
+import dcfurs
 import random
 
-# Colors, from top to bottom (fire goes from blue on bottom to yellow to red
-# to black).
+# Colors, from top to bottom of the fire.
 colors = [0, 0x1f0f0f, 0x3f0000, 0xff0000, 0xff7f00, 0xffff00, 0x1f007f,
           0x0000ff, 0xffffff]
 
@@ -37,14 +34,25 @@ class fire(object):
         self.boop_remaining = 0
 
     def draw(self):
-        self.update()
+        self.update_fire()
         self.update_boop()
 
-        for y in range(dcfurs.nrows):
-            for x in range(dcfurs.ncols):
-                dcfurs.set_pix_rgb(x, y, colors[self.buffer[y][x]])
+        if self.boop_remaining:
+            # Render at 1/4 brightness unless it's the Boop text.
+            for y, row_mask in enumerate(boop_mask):
+                for x in range(dcfurs.ncols):
+                    color = colors[self.buffer[y][x]]
+                    if (1 << x) & row_mask == 0:
+                        # Non-boop pixel.
+                        color = (color >> 2) & 0x3f3f3f
+                    dcfurs.set_pix_rgb(x, y, color)
+        else:
+            for y in range(dcfurs.nrows):
+                for x in range(dcfurs.ncols):
+                    dcfurs.set_pix_rgb(x, y, colors[self.buffer[y][x]])
 
-    def update(self):
+    def update_fire(self):
+        """Update our internal fire buffer, moving the flames upward."""
         # Fill the bottom (invisible) row with random values.
         for x in range(dcfurs.ncols):
             self.buffer[dcfurs.nrows][x] = random.randint(0, len(colors) - 1)
@@ -62,7 +70,7 @@ class fire(object):
 
     def boop(self):
         """Nose Boop start, reset our internal Boop timer."""
-        self.boop_remaining = 1000 / self.interval
+        self.boop_remaining = 500 / self.interval
 
     def update_boop(self):
         """Check if we need to add Boop to the flames."""
@@ -76,38 +84,3 @@ class fire(object):
             for x in range(dcfurs.ncols):
                 if (1 << x) & row_mask:
                     self.buffer[y][x] = len(colors) - 1
-
-# Simple unit test to verify that everything should run without
-# crashing.  When run locally, there's no dcfurs module, so this
-# creates a fake one with the functions used by the animation.
-# Note that this isn't perfect, since the environment when running
-# on the badge is a bit different (eg. functions like xrange don't
-# exist, and the firmware provides a number of objects that don't
-# exist here), but it can at least cover some of the basics.
-if __name__ == '__main__':
-    import unittest
-
-    class FakeDcfurs(object):
-        nrows = 7
-        ncols = 18
-        def set_row(self, row, color):
-            pass
-        def set_pix_rgb(self, x, y, color):
-            pass
-        def clear(self):
-            pass
-    dcfurs = FakeDcfurs()
-
-    class TestPattern(unittest.TestCase):
-        def setUp(self):
-            self.pattern = fire()
-
-        def test_interface(self):
-            self.assertTrue(hasattr(self.pattern, 'interval'))
-            self.assertTrue(hasattr(self.pattern, 'draw'))
-            self.pattern.draw()
-
-        def test_boop(self):
-            self.pattern.boop()
-            self.pattern.draw()
-    unittest.main()
